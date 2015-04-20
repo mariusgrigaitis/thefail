@@ -1,13 +1,13 @@
 from subprocess import PIPE
 from pathlib import PosixPath, Path
 from mock import patch, Mock
-from thefuck import main
+from thefail import main
 
 
 def test_get_settings():
-    with patch('thefuck.main.load_source', return_value=Mock(rules=['bash'])):
+    with patch('thefail.main.load_source', return_value=Mock(rules=['bash'])):
         assert main.get_settings(Path('/')).rules == ['bash']
-    with patch('thefuck.main.load_source', return_value=Mock(spec=[])):
+    with patch('thefail.main.load_source', return_value=Mock(spec=[])):
         assert main.get_settings(Path('/')).rules is None
 
 
@@ -20,7 +20,7 @@ def test_is_rule_enabled():
 def test_load_rule():
     match = object()
     get_new_command = object()
-    with patch('thefuck.main.load_source',
+    with patch('thefail.main.load_source',
                return_value=Mock(
                    match=match,
                    get_new_command=get_new_command)) as load_source:
@@ -29,8 +29,8 @@ def test_load_rule():
 
 
 def test_get_rules():
-    with patch('thefuck.main.Path.glob') as glob, \
-            patch('thefuck.main.load_source',
+    with patch('thefail.main.Path.glob') as glob, \
+            patch('thefail.main.load_source',
                   lambda x, _: Mock(match=x, get_new_command=x)):
         glob.return_value = [PosixPath('bash.py'), PosixPath('lisp.py')]
         assert main.get_rules(
@@ -46,14 +46,14 @@ def test_get_rules():
 
 
 def test_get_command():
-    with patch('thefuck.main.Popen') as Popen, \
-            patch('thefuck.main.os.environ',
+    with patch('thefail.main.Popen') as Popen, \
+            patch('thefail.main.os.environ',
                   new_callable=lambda: {}), \
-            patch('thefuck.main.wait_output',
+            patch('thefail.main.wait_output',
                   return_value=True):
         Popen.return_value.stdout.read.return_value = b'stdout'
         Popen.return_value.stderr.read.return_value = b'stderr'
-        assert main.get_command(Mock(), ['thefuck', 'apt-get',
+        assert main.get_command(Mock(), ['thefail', 'apt-get',
                                          'search', 'vim']) \
                == main.Command('apt-get search vim', 'stdout', 'stderr')
         Popen.assert_called_once_with('apt-get search vim',
